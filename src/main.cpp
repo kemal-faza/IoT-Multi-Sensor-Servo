@@ -29,7 +29,7 @@ void controlServo()
 
   if (motionDetected && temperature > TEMP_THRESHOLD) // Suhu abnormal + motion trigger
   {
-    targetPosition = 0;
+    targetPosition = 90;
     if (!alertStatus)
     {
       Serial.println("KONDISI KRITIS: Motion + Suhu tinggi! Servo -> 90°");
