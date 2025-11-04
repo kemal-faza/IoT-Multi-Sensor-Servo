@@ -2,51 +2,44 @@
 #include <DHT.h>
 #include <ESP32Servo.h>
 
-// Pin definitions
-#define DHT_PIN 4    // Pin untuk sensor DHT22
-#define MOTION_PIN 5 // Pin untuk sensor motion PIR
-#define SERVO_PIN 18 // Pin untuk servo motor
-#define LED_PIN 2    // Pin untuk LED indikator
+#define DHT_PIN 4
+#define MOTION_PIN 5
+#define SERVO_PIN 18
+#define LED_PIN 2
 
-// Sensor configuration
 #define DHT_TYPE DHT22
 DHT dht(DHT_PIN, DHT_TYPE);
 
-// Servo configuration
 Servo myServo;
 
-// Variables
 float temperature;
 float humidity;
 bool motionDetected = false;
 bool alertStatus = false;
 unsigned long previousMillis = 0;
-const long interval = 2000;
-int currentServoPos = 90; // Posisi awal servo (tengah)
+const long interval = 2000; // Interval pembacaan sensor (2 detik)
+int currentServoPos = 0;
 
 // Thresholds
-const float TEMP_THRESHOLD = 30.0;  // Suhu batas dalam Celsius
-const float HUMID_THRESHOLD = 70.0; // Kelembaban batas dalam persen
+const float TEMP_THRESHOLD = 30.0;
+const float HUMID_THRESHOLD = 70.0;
 
 void controlServo()
 {
-  int targetPosition = 90; // Posisi default (tengah)
+  int targetPosition = 0;
 
-  // Tentukan posisi servo berdasarkan kondisi sensor (hanya 3 posisi: 0°, 45°, 90°)
-  if (motionDetected && temperature > TEMP_THRESHOLD)
+  if (motionDetected && temperature > TEMP_THRESHOLD) // Suhu abnormal + motion trigger
   {
-    // Kondisi KRITIS: Motion + Suhu tinggi -> 0 derajat
     targetPosition = 0;
     digitalWrite(LED_PIN, HIGH);
     if (!alertStatus)
     {
-      Serial.println("KONDISI KRITIS: Motion + Suhu tinggi! Servo -> 0°");
+      Serial.println("KONDISI KRITIS: Motion + Suhu tinggi! Servo -> 90°");
       alertStatus = true;
     }
   }
-  else if (motionDetected || temperature > TEMP_THRESHOLD || humidity > HUMID_THRESHOLD)
+  else if (motionDetected || temperature > TEMP_THRESHOLD || humidity > HUMID_THRESHOLD) // Salah satu sensor ketrigger/abnormal
   {
-    // Kondisi PERINGATAN: Salah satu sensor aktif -> 45 derajat
     targetPosition = 45;
     digitalWrite(LED_PIN, HIGH);
     if (!alertStatus)
@@ -55,19 +48,18 @@ void controlServo()
       alertStatus = true;
     }
   }
-  else
+  else // Normal
   {
-    // Kondisi NORMAL: Semua sensor aman -> 90 derajat
-    targetPosition = 90;
+    targetPosition = 0;
     digitalWrite(LED_PIN, LOW);
     if (alertStatus)
     {
-      Serial.println("NORMAL: Kondisi aman. Servo -> 90°");
+      Serial.println("NORMAL: Kondisi aman. Servo -> 0°");
       alertStatus = false;
     }
   }
 
-  // Gerakkan servo secara smooth ke posisi target
+  // Gerakkan servo sesuai posisi target
   if (currentServoPos != targetPosition)
   {
     if (currentServoPos < targetPosition)
@@ -84,7 +76,7 @@ void controlServo()
     }
 
     myServo.write(currentServoPos);
-    delay(20); // Delay untuk gerakan yang smooth
+    delay(20);
   }
 }
 
@@ -92,18 +84,14 @@ void setup()
 {
   Serial.begin(115200);
 
-  // Initialize pins
   pinMode(MOTION_PIN, INPUT);
   pinMode(LED_PIN, OUTPUT);
 
-  // Initialize sensors
   dht.begin();
 
-  // Initialize servo
   myServo.attach(SERVO_PIN);
-  myServo.write(90); // Posisi awal di tengah
+  myServo.write(0);
 
-  // Initial state
   digitalWrite(LED_PIN, LOW);
 
   Serial.println("=== Smart Monitoring System ===");
@@ -111,7 +99,7 @@ void setup()
   Serial.println("DHT22 pada pin 4, Motion PIR pada pin 5");
   Serial.println("Aktuator: LED pada pin 2, Servo pada pin 18");
   Serial.println("Threshold: 30°C, 70% RH");
-  Serial.println("Servo Positions: 90°=Normal, 45°=Warning, 0°=Critical");
+  Serial.println("Servo Positions: 0°=Normal, 45°=Warning, 90°=Critical");
   Serial.println("=====================================");
 }
 
@@ -124,29 +112,26 @@ void loop()
   {
     previousMillis = currentMillis;
 
-    // Baca DHT22 sensor
+    // Baca sensor suhu
     humidity = dht.readHumidity();
     temperature = dht.readTemperature();
 
-    // Validasi pembacaan DHT
     if (isnan(humidity) || isnan(temperature))
     {
       Serial.println("Error: Gagal membaca DHT sensor!");
       return;
     }
 
-    // Baca motion sensor
+    // Baca sensor motion
     motionDetected = digitalRead(MOTION_PIN);
 
-    // Tampilkan data sensor
     Serial.println("\n--- Data Sensor ---");
     Serial.printf("Suhu: %.2f°C\n", temperature);
     Serial.printf("Kelembaban: %.2f%%\n", humidity);
     Serial.printf("Motion: %s\n", motionDetected ? "TERDETEKSI" : "Tidak ada gerakan");
   }
 
-  // Kontrol servo berdasarkan sensor
   controlServo();
 
-  delay(100); // Delay kecil untuk stabilitas
+  delay(100);
 }
