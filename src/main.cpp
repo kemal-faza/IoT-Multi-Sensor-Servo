@@ -5,7 +5,6 @@
 #define DHT_PIN 4
 #define MOTION_PIN 5
 #define SERVO_PIN 18
-#define LED_PIN 2
 
 #define DHT_TYPE DHT22
 DHT dht(DHT_PIN, DHT_TYPE);
@@ -31,7 +30,6 @@ void controlServo()
   if (motionDetected && temperature > TEMP_THRESHOLD) // Suhu abnormal + motion trigger
   {
     targetPosition = 0;
-    digitalWrite(LED_PIN, HIGH);
     if (!alertStatus)
     {
       Serial.println("KONDISI KRITIS: Motion + Suhu tinggi! Servo -> 90°");
@@ -41,7 +39,6 @@ void controlServo()
   else if (motionDetected || temperature > TEMP_THRESHOLD || humidity > HUMID_THRESHOLD) // Salah satu sensor ketrigger/abnormal
   {
     targetPosition = 45;
-    digitalWrite(LED_PIN, HIGH);
     if (!alertStatus)
     {
       Serial.println("PERINGATAN: Kondisi tidak normal! Servo -> 45°");
@@ -51,7 +48,6 @@ void controlServo()
   else // Normal
   {
     targetPosition = 0;
-    digitalWrite(LED_PIN, LOW);
     if (alertStatus)
     {
       Serial.println("NORMAL: Kondisi aman. Servo -> 0°");
@@ -85,19 +81,16 @@ void setup()
   Serial.begin(115200);
 
   pinMode(MOTION_PIN, INPUT);
-  pinMode(LED_PIN, OUTPUT);
 
   dht.begin();
 
   myServo.attach(SERVO_PIN);
   myServo.write(0);
 
-  digitalWrite(LED_PIN, LOW);
-
   Serial.println("=== Smart Monitoring System ===");
   Serial.println("DHT22 Sensor + Motion Sensor + Servo Alert");
   Serial.println("DHT22 pada pin 4, Motion PIR pada pin 5");
-  Serial.println("Aktuator: LED pada pin 2, Servo pada pin 18");
+  Serial.println("Aktuator: Servo pada pin 18");
   Serial.println("Threshold: 30°C, 70% RH");
   Serial.println("Servo Positions: 0°=Normal, 45°=Warning, 90°=Critical");
   Serial.println("=====================================");
