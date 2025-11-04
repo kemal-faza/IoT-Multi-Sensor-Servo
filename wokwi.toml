@@ -1,0 +1,110 @@
+[wokwi]
+version = 1
+firmware = ".pio/build/az-delivery-devkit-v4/firmware.bin"
+elf = ".pio/build/az-delivery-devkit-v4/firmware.elf"
+
+[[wokwi.parts]]
+type = "wokwi-esp32-devkit-v1"
+id = "esp"
+top = 0
+left = 0
+
+[[wokwi.parts]]
+type = "wokwi-dht22"
+id = "dht1"
+top = -48
+left = 150
+
+[[wokwi.parts]]
+type = "wokwi-pir-motion-sensor"
+id = "pir1"
+top = -48
+left = 240
+
+[[wokwi.parts]]
+type = "wokwi-led"
+id = "led1"
+top = 240
+left = 150
+attrs = { color = "red" }
+
+[[wokwi.parts]]
+type = "wokwi-servo"
+id = "servo1"
+top = 288
+left = 150
+
+[[wokwi.parts]]
+type = "wokwi-resistor"
+id = "r1"
+top = 249.6
+left = 105.6
+attrs = { value = "220" }
+
+[[wokwi.connections]]
+from = "esp:TX0"
+to = "$serialMonitor:RX"
+
+[[wokwi.connections]]
+from = "esp:RX0"
+to = "$serialMonitor:TX"
+
+[[wokwi.connections]]
+from = "dht1:VCC"
+to = "esp:3V3"
+color = "red"
+
+[[wokwi.connections]]
+from = "dht1:GND"
+to = "esp:GND.1"
+color = "black"
+
+[[wokwi.connections]]
+from = "dht1:SDA"
+to = "esp:D4"
+color = "green"
+
+[[wokwi.connections]]
+from = "pir1:VCC"
+to = "esp:3V3"
+color = "red"
+
+[[wokwi.connections]]
+from = "pir1:GND"
+to = "esp:GND.2"
+color = "black"
+
+[[wokwi.connections]]
+from = "pir1:OUT"
+to = "esp:D5"
+color = "blue"
+
+[[wokwi.connections]]
+from = "r1:1"
+to = "esp:D2"
+color = "green"
+
+[[wokwi.connections]]
+from = "r1:2"
+to = "led1:A"
+color = "green"
+
+[[wokwi.connections]]
+from = "led1:C"
+to = "esp:GND.1"
+color = "black"
+
+[[wokwi.connections]]
+from = "servo1:PWM"
+to = "esp:D18"
+color = "purple"
+
+[[wokwi.connections]]
+from = "servo1:V+"
+to = "esp:3V3"
+color = "red"
+
+[[wokwi.connections]]
+from = "servo1:GND"
+to = "esp:GND.2"
+color = "black"
